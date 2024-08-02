@@ -107,7 +107,8 @@ async def on_message(message):
 
     if message.channel.id == ZINCIRLI:
         encrypted_message = nerv.encrypt(message.content, ZN_KEY)
-        await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=message.author.avatar.url, custom_name=message.author.name)
+        avatar_url = message.author.avatar.url if message.author.avatar else "https://i.imgur.com/CSU09SU.png"
+        await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=avatar_url, custom_name=message.author.name)
         await message.delete()
 
 ### SLASH COMMAND
