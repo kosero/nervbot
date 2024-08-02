@@ -1,0 +1,5 @@
+aiohttp
+py-cord
+google-generativeai
+python-dotenv
+
