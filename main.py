@@ -50,7 +50,7 @@ async def on_message(message):
 
     content = message.content.lower()
 
-    if content.startswith("sex"):
+    if content.startswith("nya"):
         await nerv.send_webhook_message("neco", message.channel, "Burenyuu!")
     
     if any(content.startswith(keyword) for keyword in KNECOPARA):
