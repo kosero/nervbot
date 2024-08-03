@@ -24,12 +24,12 @@ bot = discord.Bot(command_prefix="!", intents=intents)
 # VARiABLES
 DC_TOKEN = os.getenv("DC_TOKEN")
 MAX_HISTORY = os.getenv("MAX_HISTORY")
-#ZINCIRLI = os.getenv("ZINCIRLI")
 ZINCIRLI=1268673900271767672
 ZN_KEY = os.getenv("ZN_KEY")
-WELCOME = os.getenv("WELCOME")
-
-KNECOPARA=["miyav","mıyav","meow","miyaw","mıyaw"]
+KAYIT_LOG=1246728895957569616
+NECO_CVP=["miyav.","meow."]
+KNECOPARA=["miyav","mıyav","meow","miyaw","mıyaw","ps"]
+GUILD=1154598232651997214
 
 @bot.event
 async def on_ready():
@@ -41,7 +41,7 @@ async def on_member_join(member):
     await member.add_roles(role)
 
     bekleme = bot.get_channel(1246509796329390192)
-    await send_webhook_msj("neco", bekleme, f"{WELCOME}")
+    await nerv.send_webhook_message("neco", bekleme, f"Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin? (Hangi etiketler dikkatini cekti ornek: anime, sohbet)\n> Sunucuyu nerden buldun? (Disboard fln)\nBunlara cevap verdikten sonra yetkili birisi seni kayit edicektir")
 
 @bot.event
 async def on_message(message):
@@ -50,11 +50,12 @@ async def on_message(message):
 
     content = message.content.lower()
 
-    if content.startswith("sex"):
+    if content.startswith("nya"):
         await nerv.send_webhook_message("neco", message.channel, "Burenyuu!")
     
     if any(content.startswith(keyword) for keyword in KNECOPARA):
-        await nerv.send_webhook_message("necopara", message.channel, "miyav.")
+        miyavlama = random.choice(NECO_CVP)
+        await nerv.send_webhook_message("necopara", message.channel, miyavlama)
 
     # Check if the bot is mentioned or the message is a DM
     if bot.user.mentioned_in(message) or isinstance(message.channel, discord.DMChannel) or message.content.lower().startswith('kosero'):
@@ -107,7 +108,8 @@ async def on_message(message):
 
     if message.channel.id == ZINCIRLI:
         encrypted_message = nerv.encrypt(message.content, ZN_KEY)
-        await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=message.author.avatar.url, custom_name=message.author.name)
+        avatar_url = message.author.avatar.url if message.author.avatar else "https://i.imgur.com/CSU09SU.png"
+        await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=avatar_url, custom_name=message.author.name)
         await message.delete()
 
 ### SLASH COMMAND
@@ -115,7 +117,7 @@ async def on_message(message):
 @bot.slash_command(
     name="kayit",
     description="Bir üyenin kaydını yapar.",
-    guild_ids=[1154598232651997214]
+    guild_ids=[GUILD]
 )
 async def kayit(ctx: discord.ApplicationContext, member: discord.Member, age: int, why: str, invite: str):
     kayit_rol = discord.utils.get(ctx.guild.roles, id=1165680635055181885)
@@ -140,7 +142,7 @@ async def kayit(ctx: discord.ApplicationContext, member: discord.Member, age: in
 @bot.slash_command(
     name="reset",
     description="AI'nin hafızasını siler.",
-    guild_ids=[1154598232651997214]
+    guild_ids=[GUILD]
 )
 async def reset(ctx: discord.ApplicationContext):
     if ctx.author.id in message_history:
@@ -149,11 +151,26 @@ async def reset(ctx: discord.ApplicationContext):
     else:
         await ctx.respond(f"🤖 {ctx.author.mention}, mesaj geçmişiniz zaten sıfırlandı veya bulunamadı.")
 
+# BAN
+@bot.slash_command(
+    name="ban",
+    description="Birisini banlar iste",
+    guild_ids=[GUILD]
+)
+async def ban(ctx, member : discord.Member, *, reason = None):
+    c2V4 = 1155877544256614441
+    
+    if any(role.id == c2V4 for role in ctx.user.roles):
+        await member.ban(reason = reason)
+        await ctx.respond("banladim sex", ephemeral=True)
+    else:
+        await ctx.respond("sex oldu", ephemeral=True)
+
 # ZINCIR
 @bot.slash_command(
     name="encrypt",
     description="Mesaji sifreler.",
-    guild_ids=[1154598232651997214]
+    guild_ids=[GUILD]
 )
 async def encrypt(ctx, message: str):
     try:
@@ -167,19 +184,17 @@ async def encrypt(ctx, message: str):
 
 @bot.slash_command(
     name="decrypt",
-    description="Mesaji donusturur.",
-    guild_ids=[1154598232651997214]
+    description="Mesajin sifresini cozer.",
+    guild_ids=[GUILD]
 )
 async def decrypt(ctx, message_id: str):
-    required_role_id = 1213598172040003604
-
-    if any(role.id == required_role_id for role in ctx.author.roles):
-        try:
-            message = await ctx.channel.fetch_message(int(message_id))
-            decrypted_message = nerv.decrypt(message.content, ZN_KEY)
-            await ctx.respond(decrypted_message, ephemeral=True)
-
-        except Exception as e:
-            await ctx.respond(f"Hata: {e}", ephemeral=True)
+    c2V4 = 1213598172040003604
+    
+    if any(role.id == c2V4 for role in ctx.user.roles):
+        message = await ctx.channel.fetch_message(int(message_id))
+        decrypted_message = nerv.decrypt(message.content, ZN_KEY)
+        await ctx.respond(decrypted_message, ephemeral=True)
+    else:
+        await ctx.respond("sex oldu", ephemeral=True)
 
 bot.run(DC_TOKEN)
