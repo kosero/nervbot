@@ -24,13 +24,13 @@ bot = discord.Bot(command_prefix="!", intents=intents)
 # VARiABLES
 DC_TOKEN = os.getenv("DC_TOKEN")
 MAX_HISTORY = os.getenv("MAX_HISTORY")
-#ZINCIRLI = os.getenv("ZINCIRLI")
 ZINCIRLI=1268673900271767672
 ZN_KEY = os.getenv("ZN_KEY")
-KAYIT_LOG = 1246728895957569616
-WELCOME="Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin? (Hangi etiketler dikkatini cekti ornek: anime, sohbet)\n> Sunucuyu nerden buldun? (Disboard fln)\nBunlara cevap verdikten sonra yetkili birisi seni kayit edicektir."
+KAYIT_LOG=1246728895957569616
 
-KNECOPARA=["miyav","mıyav","meow","miyaw","mıyaw"]
+NECO_CVP=["miyav.","meow."]
+
+KNECOPARA=["miyav","mıyav","meow","miyaw","mıyaw","ps"]
 
 @bot.event
 async def on_ready():
@@ -42,7 +42,7 @@ async def on_member_join(member):
     await member.add_roles(role)
 
     bekleme = bot.get_channel(1246509796329390192)
-    await send_webhook_msj("neco", bekleme, f"{WELCOME}")
+    await nerv.send_webhook_message("neco", bekleme, f"Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin? (Hangi etiketler dikkatini cekti ornek: anime, sohbet)\n> Sunucuyu nerden buldun? (Disboard fln)\nBunlara cevap verdikten sonra yetkili birisi seni kayit edicektir")
 
 @bot.event
 async def on_message(message):
@@ -55,7 +55,8 @@ async def on_message(message):
         await nerv.send_webhook_message("neco", message.channel, "Burenyuu!")
     
     if any(content.startswith(keyword) for keyword in KNECOPARA):
-        await nerv.send_webhook_message("necopara", message.channel, "miyav.")
+        miyavlama = random.choice(NECO_CVP)
+        await nerv.send_webhook_message("necopara", message.channel, miyavlama)
 
     # Check if the bot is mentioned or the message is a DM
     if bot.user.mentioned_in(message) or isinstance(message.channel, discord.DMChannel) or message.content.lower().startswith('kosero'):
