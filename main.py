@@ -27,7 +27,8 @@ MAX_HISTORY = os.getenv("MAX_HISTORY")
 #ZINCIRLI = os.getenv("ZINCIRLI")
 ZINCIRLI=1268673900271767672
 ZN_KEY = os.getenv("ZN_KEY")
-WELCOME = os.getenv("WELCOME")
+KAYIT_LOG = 1246728895957569616
+WELCOME="Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin? (Hangi etiketler dikkatini cekti ornek: anime, sohbet)\n> Sunucuyu nerden buldun? (Disboard fln)\nBunlara cevap verdikten sonra yetkili birisi seni kayit edicektir."
 
 KNECOPARA=["miyav","mıyav","meow","miyaw","mıyaw"]
 
