@@ -183,4 +183,16 @@ async def archwiki(ctx, query: str):
     if page_url:
         await ctx.respond(f"{page_url}")
 
+@bot.slash_command(
+    name="send",
+    description="send.",
+    guild_ids=[GUILD]
+)
+async def send(ctx, message: str, avatar: str, name: str):
+    if any(role.id == 1213598172040003604 for role in ctx.user.roles):
+        await nerv.send_webhook_message("custom", ctx.channel, message, custom_avatar=avatar, custom_name=name) 
+        await ctx.respond("sex", ephemeral=True)
+    else:
+        await ctx.respond("sex oldu", ephemeral=True)
+
 bot.run(DC_TOKEN)
