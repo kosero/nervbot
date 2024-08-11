@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import random
 
 import nerv
-import amadeus
 
 message_history = {}
 
@@ -23,13 +22,17 @@ bot = discord.Bot(command_prefix="!", intents=intents)
 
 # VARiABLES
 DC_TOKEN = os.getenv("DC_TOKEN")
-MAX_HISTORY = os.getenv("MAX_HISTORY")
-ZINCIRLI=1268673900271767672
 ZN_KEY = os.getenv("ZN_KEY")
-KAYIT_LOG=1246728895957569616
+
 NECO_CVP=["miyav.","meow."]
 KNECOPARA=["miyav","mıyav","meow","miyaw","mıyaw","ps"]
+
 GUILD=1154598232651997214
+KAYIT_LOG=1246728895957569616
+ZINCIRLI=1268673900271767672
+
+REI_CHANNEL=1268249139104448512
+NECO_CHANNEL=1268228610645561415
 
 @bot.event
 async def on_ready():
@@ -56,55 +59,6 @@ async def on_message(message):
     if any(content.startswith(keyword) for keyword in KNECOPARA):
         miyavlama = random.choice(NECO_CVP)
         await nerv.send_webhook_message("necopara", message.channel, miyavlama)
-
-    # Check if the bot is mentioned or the message is a DM
-    if bot.user.mentioned_in(message) or isinstance(message.channel, discord.DMChannel) or message.content.lower().startswith('kosero'):
-        # Start Typing to seem like something happened
-        cleaned_text = amadeus.clean_discord_message(message.content)
-
-        async with message.channel.typing():
-            # Check for image attachments
-            if message.attachments:
-                print("New Image Message FROM:" + str(message.author.id) + ": " + cleaned_text)
-                # Currently no chat history for images
-                for attachment in message.attachments:
-                    # These are the only image extensions it currently accepts
-                    if any(attachment.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif', '.webp']):
-                        await message.add_reaction('<:ayak:1245436100898717706>')
-
-                        async with aiohttp.ClientSession() as session:
-                            async with session.get(attachment.url) as resp:
-                                if resp.status != 200:
-                                    await message.channel.send('Unable to download the image.')
-                                    return
-                                image_data = await resp.read()
-                                response_text = await amadeus.generate_response_with_image_and_text(image_data, cleaned_text)
-                                # Split the Message so discord does not get upset
-                                await amadeus.split_and_send_messages(message, response_text, 1700, reply_to=message)
-                                return
-            # Not an Image do text response
-            else:
-                await message.add_reaction('<:yazmak:1248267984275898378>')
-
-                # Check if history is disabled just send response
-                if(MAX_HISTORY == 0):
-                    response_text = await amadeus.generate_response_with_text(cleaned_text)
-                    # Add AI response to history
-                    await amadeus.split_and_send_messages(message, response_text, 1700, reply_to=message)
-                    return
-                # Add user's question to history
-                amadeus.update_message_history(message.author.id, cleaned_text)
-                response_text = await amadeus.generate_response_with_text(amadeus.get_formatted_message_history(message.author.id))
-                # Add AI response to history
-                amadeus.update_message_history(message.author.id, response_text)
-                # Split the Message so discord does not get upset
-
-                if "@everyone" in response_text or "@here" in response_text:
-                    response_clean_text = response_text.replace("@everyone", "everyone").replace("@here", "here")
-                    await amadeus.split_and_send_messages(message, response_clean_text, 1700, reply_to=message)
-                    return
-
-                await amadeus.split_and_send_messages(message, response_text, 1700, reply_to=message)
 
     if message.channel.id == ZINCIRLI:
         encrypted_message = nerv.encrypt(message.content, ZN_KEY)
@@ -137,19 +91,6 @@ async def kayit(ctx: discord.ApplicationContext, member: discord.Member, age: in
 
     await log_channel.send(embed=embed)
     return
-
-# AI RESET
-@bot.slash_command(
-    name="reset",
-    description="AI'nin hafızasını siler.",
-    guild_ids=[GUILD]
-)
-async def reset(ctx: discord.ApplicationContext):
-    if ctx.author.id in message_history:
-        del message_history[ctx.author.id]
-        await ctx.respond(f"🤖 {ctx.author.mention} mesaj geçmişiniz başarıyla sıfırlandı.")
-    else:
-        await ctx.respond(f"🤖 {ctx.author.mention}, mesaj geçmişiniz zaten sıfırlandı veya bulunamadı.")
 
 # BAN
 @bot.slash_command(
@@ -196,5 +137,50 @@ async def decrypt(ctx, message_id: str):
         await ctx.respond(decrypted_message, ephemeral=True)
     else:
         await ctx.respond("sex oldu", ephemeral=True)
+
+@bot.slash_command(
+    name="avatar",
+    description="avatar",
+    guild_ids=[GUILD]
+)
+async def avatar(ctx, member: discord.Member = None):
+    user = member if member else ctx.author
+    avatar_url = user.avatar.url if user.avatar else None
+
+    if avatar_url:
+        await ctx.respond(f"{avatar_url}")
+
+@bot.slash_command(
+    name="rei",
+    description="REI REI REI REI.",
+    guild_ids=[GUILD]
+)
+async def rei(ctx):
+    message = await nerv.get_random_message_with_link(bot.get_channel(REI_CHANNEL), "https://i.pinimg.com/")
+
+    if message:
+        await ctx.respond(f"{message.content}")
+
+@bot.slash_command(
+    name="neco",
+    description="NECO NECO NECO NECO.",
+    guild_ids=[GUILD]
+)
+async def neco(ctx):
+    message = await nerv.get_random_message_with_link(bot.get_channel(NECO_CHANNEL), "https://i.pinimg.com/")
+
+    if message:
+        await ctx.respond(f"{message.content}")
+
+@bot.slash_command(
+    name="archwiki",
+    description="ArchWiki'de arama yapar",
+    guild_ids=[GUILD]
+)
+async def archwiki(ctx, query: str):
+    page_title, page_url = await nerv.search_archwiki(query)
+
+    if page_url:
+        await ctx.respond(f"{page_url}")
 
 bot.run(DC_TOKEN)
