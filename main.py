@@ -217,22 +217,5 @@ async def mcserverac(ctx):
     except Exception as e:
         await ctx.followup.send(f"{e}")
 
-@bot.slash_command(
-    name="mcserverkapa",
-    description="Minecraft Sunucusunu kapatir.",
-    guild_ids=[GUILD]
-)
-async def mcserverkapa(ctx):
-    await ctx.defer()
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((MC_SERVER_HOST, MC_SERVER_PORT))
-            
-            s.sendall(b'stop\n')
-            response = s.recv(1024).decode('utf-8')
-
-            await ctx.followup.send(f"Sunucu: {response}")
-    except Exception as e:
-        await ctx.followup.send(f"{e}")
 
 bot.run(DC_TOKEN)
