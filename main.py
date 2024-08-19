@@ -1,5 +1,6 @@
 import os
 import re
+import socket
 
 import aiohttp
 import discord
@@ -33,6 +34,9 @@ ZINCIRLI=1268673900271767672
 
 REI_CHANNEL=1268249139104448512
 NECO_CHANNEL=1268228610645561415
+
+MC_SERVER_HOST = '127.0.0.1'
+MC_SERVER_PORT = 6543
 
 @bot.event
 async def on_ready():
@@ -194,5 +198,41 @@ async def send(ctx, message: str, avatar: str, name: str):
         await ctx.respond("sex", ephemeral=True)
     else:
         await ctx.respond("sex oldu", ephemeral=True)
+
+@bot.slash_command(
+    name="mcserverac",
+    description="Minecraft Sunucusunu acar.",
+    guild_ids=[GUILD]
+)
+async def mcserverac(ctx):
+    await ctx.defer()
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((MC_SERVER_HOST, MC_SERVER_PORT))
+            
+            s.sendall(b'start\n')
+            response = s.recv(1024).decode('utf-8')
+
+            await ctx.followup.send(f"Sunucu: {response}")
+    except Exception as e:
+        await ctx.followup.send(f"{e}")
+
+@bot.slash_command(
+    name="mcserverkapa",
+    description="Minecraft Sunucusunu kapatir.",
+    guild_ids=[GUILD]
+)
+async def mcserverkapa(ctx):
+    await ctx.defer()
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((MC_SERVER_HOST, MC_SERVER_PORT))
+            
+            s.sendall(b'stop\n')
+            response = s.recv(1024).decode('utf-8')
+
+            await ctx.followup.send(f"Sunucu: {response}")
+    except Exception as e:
+        await ctx.followup.send(f"{e}")
 
 bot.run(DC_TOKEN)
