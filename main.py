@@ -5,7 +5,9 @@ import socket
 import aiohttp
 import discord
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 import random
+import asyncio
 
 import nerv
 
@@ -70,7 +72,7 @@ async def on_message(message):
         await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=avatar_url, custom_name=message.author.name)
         await message.delete()
 
-### SLASH COMMAND
+
 # KAYIT 
 @bot.slash_command(
     name="kayit",
@@ -115,7 +117,6 @@ async def ban(ctx, member : discord.Member, *, reason = None):
 @bot.slash_command(
     name="encrypt",
     description="Mesaji sifreler.",
-    guild_ids=[GUILD]
 )
 async def encrypt(ctx, message: str):
     try:
@@ -130,22 +131,32 @@ async def encrypt(ctx, message: str):
 @bot.slash_command(
     name="decrypt",
     description="Mesajin sifresini cozer.",
-    guild_ids=[GUILD]
 )
 async def decrypt(ctx, message_id: str):
-    c2V4 = 1213598172040003604
-    
-    if any(role.id == c2V4 for role in ctx.user.roles):
-        message = await ctx.channel.fetch_message(int(message_id))
-        decrypted_message = nerv.decrypt(message.content, ZN_KEY)
-        await ctx.respond(decrypted_message, ephemeral=True)
+    allowed_user_ids = [
+        1154585783529910292,  # kosero
+        1006190399867605072,  # arexa
+        1271174239696977943,  # folia
+        723826209691271178,   # dark
+        1123680439224238102,  # FRST
+        335882105181569024,   # florina
+        859752224879542282,   # caklit
+        1001813025302519809   # yigosa
+    ]
+
+    if ctx.user.id in allowed_user_ids:
+        try:
+            message = await ctx.channel.fetch_message(int(message_id))
+            decrypted_message = nerv.decrypt(message.content, ZN_KEY)
+            await ctx.respond(decrypted_message, ephemeral=True)
+        except Exception as e:
+            await ctx.respond(f"{str(e)}", ephemeral=True)
     else:
         await ctx.respond("sex oldu", ephemeral=True)
 
 @bot.slash_command(
     name="avatar",
     description="avatar",
-    guild_ids=[GUILD]
 )
 async def avatar(ctx, member: discord.Member = None):
     user = member if member else ctx.author
@@ -157,29 +168,22 @@ async def avatar(ctx, member: discord.Member = None):
 @bot.slash_command(
     name="rei",
     description="REI REI REI REI.",
-    guild_ids=[GUILD]
 )
-async def rei(ctx):
-    message = await nerv.get_random_message_with_link(bot.get_channel(REI_CHANNEL), "https://i.pinimg.com/")
-
-    if message:
-        await ctx.respond(f"{message.content}")
+async def rei(ctx): 
+    rei_rnd = nerv.reicik()
+    await ctx.respond(rei_rnd)
 
 @bot.slash_command(
     name="neco",
     description="NECO NECO NECO NECO.",
-    guild_ids=[GUILD]
 )
-async def neco(ctx):
-    message = await nerv.get_random_message_with_link(bot.get_channel(NECO_CHANNEL), "https://i.pinimg.com/")
-
-    if message:
-        await ctx.respond(f"{message.content}")
+async def neco(ctx): 
+    neco_rnd = nerv.necocuk()
+    await ctx.respond(neco_rnd)
 
 @bot.slash_command(
     name="archwiki",
     description="ArchWiki'de arama yapar",
-    guild_ids=[GUILD]
 )
 async def archwiki(ctx, query: str):
     page_title, page_url = await nerv.search_archwiki(query)
@@ -190,11 +194,21 @@ async def archwiki(ctx, query: str):
 @bot.slash_command(
     name="send",
     description="send.",
-    guild_ids=[GUILD]
 )
 async def send(ctx, message: str, avatar: str, name: str):
-    if any(role.id == 1213598172040003604 for role in ctx.user.roles):
-        await nerv.send_webhook_message("custom", ctx.channel, message, custom_avatar=avatar, custom_name=name) 
+    allowed_user_ids = [
+        1154585783529910292, # kosero
+        1006190399867605072, # arexa
+        1271174239696977943, # folia
+        723826209691271178, # dark
+        1123680439224238102, # FRST
+        335882105181569024, # florina
+        859752224879542282, # caklit
+        1001813025302519809 # yigosa
+    ]
+
+    if ctx.user.id in allowed_user_ids:
+        await nerv.send_webhook_message("custom", ctx.channel, message, custom_avatar=avatar, custom_name=name)
         await ctx.respond("sex", ephemeral=True)
     else:
         await ctx.respond("sex oldu", ephemeral=True)
@@ -202,7 +216,6 @@ async def send(ctx, message: str, avatar: str, name: str):
 @bot.slash_command(
     name="mcserverac",
     description="Minecraft Sunucusunu acar.",
-    guild_ids=[GUILD]
 )
 async def mcserverac(ctx):
     await ctx.defer()
