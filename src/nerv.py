@@ -127,11 +127,11 @@ def decrypt(ciphertext, key):
     return plaintext.lower()
 
 def reicik():
-    rei_img = load_json('rei.json')
+    rei_img = load_json('src/rei.json')
     return random.choice(rei_img)
 
 def necocuk():
-    neco_img = load_json('neco.json')
+    neco_img = load_json('src/neco.json')
     return random.choice(neco_img)
 
 async def search_archwiki(query: str):

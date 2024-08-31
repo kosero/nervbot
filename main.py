@@ -5,6 +5,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import json
+import feedparser
 
 from src import nerv
 
@@ -38,6 +39,14 @@ CHANNEL_ID = config["CHANNEL_ID"]
 shared_entries = nerv.load_shared_entries()
 
 @client.event
+async def on_member_join(member):
+    role = discord.utils.get(member.guild.roles, id=1235920675642933248)
+    await member.add_roles(role)
+
+    bekleme = client.get_channel(1246509796329390192)
+    await nerv.send_webhook_message("neco", bekleme, f"Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin? (Hangi etiketler dikkatini cekti ornek: anime, sohbet)\n> Sunucuyu nerden buldun? (Disboard fln)\nBunlara cevap verdikten sonra yetkili birisi seni kayit edicektir")
+
+@client.event
 async def on_ready():
     await tree.sync()
     print(f"name: {client.user}")
@@ -45,7 +54,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author.client:
+    if message.author == client.user:
         return
 
     content = message.content.lower()
@@ -65,7 +74,7 @@ async def on_message(message):
         avatar_url = message.author.avatar.url if message.author.avatar else "https://i.imgur.com/CSU09SU.png"
         await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=avatar_url, custom_name=message.author.name)
         await message.delete()
-
+    
 #
 ##encrypt / decrypt
 #
