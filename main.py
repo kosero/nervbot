@@ -2,9 +2,13 @@ import os
 
 import discord
 from discord import app_commands
+from discord.ext import commands, tasks
+from dotenv import load_dotenv
 import json
 
 from src import nerv
+
+load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -30,12 +34,14 @@ KAYIT_LOG = config["KAYIT_LOG"]
 ZINCIRLI = config["ZINCIRLI"]
 RSS_FEED_URL = config["RSS_FEED_URL"]
 CHANNEL_ID = config["CHANNEL_ID"]
-SHARED_ENTRIES_FILE = config["SHARED_ENTRIES_FILE"]
+
+shared_entries = nerv.load_shared_entries()
 
 @client.event
 async def on_ready():
     await tree.sync()
     print(f"name: {client.user}")
+    check_rss_feed.start() 
 
 @client.event
 async def on_message(message):
@@ -224,6 +230,27 @@ async def send(interaction: discord.Interaction, message: str, avatar: str, name
         await interaction.response.send_message("sex", ephemeral=True)
     else:
         await interaction.response.send_message("sex oldu", ephemeral=True)
+
+@tasks.loop(hours=12)
+async def check_rss_feed():
+    feed = feedparser.parse(RSS_FEED_URL)
+    channel = client.get_channel(CHANNEL_ID)
+
+    for entry in feed.entries:
+        entry_id = entry.id
+        if entry_id in shared_entries:
+            continue
+
+        title = entry.title
+        link = entry.link
+        summary = entry.summary
+
+        embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
+
+        await channel.send(embed=embed)
+
+        shared_entries.add(entry_id)
+        nerv.save_shared_entries(shared_entries)
 
 client.run(DC_TOKEN)
 
