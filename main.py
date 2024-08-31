@@ -1,19 +1,10 @@
 import os
-import re
-import socket
 
-import aiohttp
 import discord
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
-import random
-import asyncio
+from discord import app_commands
+import json
 
-import nerv
-
-message_history = {}
-
-load_dotenv()
+from src import nerv
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -21,40 +12,34 @@ intents.members = True
 intents.messages = True
 intents.guilds = True
 
-bot = discord.Bot(command_prefix="!", intents=intents)
+client = discord.Client(command_prefix="!", intents=intents)
+tree = app_commands.CommandTree(client)
 
 # VARiABLES
 DC_TOKEN = os.getenv("DC_TOKEN")
 ZN_KEY = os.getenv("ZN_KEY")
 
-NECO_CVP=["miyav.","meow."]
-KNECOPARA=["miyav","mıyav","meow","miyaw","mıyaw","ps"]
+with open('config.json', 'r') as file:
+    config = json.load(file)
 
-GUILD=1154598232651997214
-KAYIT_LOG=1246728895957569616
-ZINCIRLI=1268673900271767672
+NECO_CVP = config["NECO_CVP"]
+KNECOPARA = config["KNECOPARA"]
+KOPEKC = config["KOPEKC"]
+GUILD = config["GUILD"]
+KAYIT_LOG = config["KAYIT_LOG"]
+ZINCIRLI = config["ZINCIRLI"]
+RSS_FEED_URL = config["RSS_FEED_URL"]
+CHANNEL_ID = config["CHANNEL_ID"]
+SHARED_ENTRIES_FILE = config["SHARED_ENTRIES_FILE"]
 
-REI_CHANNEL=1268249139104448512
-NECO_CHANNEL=1268228610645561415
-
-MC_SERVER_HOST = '127.0.0.1'
-MC_SERVER_PORT = 6543
-
-@bot.event
+@client.event
 async def on_ready():
-    print(f"name: {bot.user}")
+    await tree.sync()
+    print(f"name: {client.user}")
 
-@bot.event
-async def on_member_join(member):
-    role = discord.utils.get(member.guild.roles, id=1235920675642933248)
-    await member.add_roles(role)
-
-    bekleme = bot.get_channel(1246509796329390192)
-    await nerv.send_webhook_message("neco", bekleme, f"Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin? (Hangi etiketler dikkatini cekti ornek: anime, sohbet)\n> Sunucuyu nerden buldun? (Disboard fln)\nBunlara cevap verdikten sonra yetkili birisi seni kayit edicektir")
-
-@bot.event
+@client.event
 async def on_message(message):
-    if message.author.bot:
+    if message.author.client:
         return
 
     content = message.content.lower()
@@ -66,73 +51,35 @@ async def on_message(message):
         miyavlama = random.choice(NECO_CVP)
         await nerv.send_webhook_message("necopara", message.channel, miyavlama)
 
+    if any(content.startswith(keyword) for keyword in KOPEKC):
+        await nerv.send_webhook_message("kopek", message.channel, "hav hav.")
+
     if message.channel.id == ZINCIRLI:
         encrypted_message = nerv.encrypt(message.content, ZN_KEY)
         avatar_url = message.author.avatar.url if message.author.avatar else "https://i.imgur.com/CSU09SU.png"
         await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=avatar_url, custom_name=message.author.name)
         await message.delete()
 
-
-# KAYIT 
-@bot.slash_command(
-    name="kayit",
-    description="Bir üyenin kaydını yapar.",
-    guild_ids=[GUILD]
-)
-async def kayit(ctx: discord.ApplicationContext, member: discord.Member, age: int, why: str, invite: str):
-    kayit_rol = discord.utils.get(ctx.guild.roles, id=1165680635055181885)
-    remove_rol = discord.utils.get(ctx.guild.roles, id=1235920675642933248)
-
-    if kayit_rol and remove_rol:
-        await member.add_roles(kayit_rol)
-        await member.remove_roles(remove_rol)
-
-    log_channel = bot.get_channel(KAYIT_LOG)
-
-    embed = discord.Embed(
-        title="Üye Kaydı Yapıldı",
-        description=f"**Üye:** {member.mention}\n**Yaş:** {age}\n**Katılma Sebebi:** {why}\n**Davet:** {invite}",
-        color=discord.Color.yellow()
-    )
-
-    await log_channel.send(embed=embed)
-    return
-
-# BAN
-@bot.slash_command(
-    name="ban",
-    description="Birisini banlar iste",
-    guild_ids=[GUILD]
-)
-async def ban(ctx, member : discord.Member, *, reason = None):
-    c2V4 = 1155877544256614441
-    
-    if any(role.id == c2V4 for role in ctx.user.roles):
-        await member.ban(reason = reason)
-        await ctx.respond("banladim sex", ephemeral=True)
-    else:
-        await ctx.respond("sex oldu", ephemeral=True)
-
-# ZINCIR
-@bot.slash_command(
+#
+##encrypt / decrypt
+#
+@tree.command(
     name="encrypt",
-    description="Mesaji sifreler.",
+    description="Mesaji sifreler."
 )
-async def encrypt(ctx, message: str):
+async def encrypt(interaction: discord.Interaction, message: str):
     try:
         encrypted_message = nerv.encrypt(message, ZN_KEY)
-
-        await nerv.send_webhook_message("custom", ctx.channel, encrypted_message, custom_avatar=ctx.author.avatar.url, custom_name=ctx.author.name) 
-        await ctx.respond("sex", ephemeral=True)
-
+        await nerv.send_webhook_message("custom", interaction.channel, encrypted_message, custom_avatar=interaction.user.avatar.url, custom_name=interaction.user.name)
+        await interaction.response.send_message("sex", ephemeral=True)
     except Exception as e:
-        await ctx.respond(f"Hata: {e}", ephemeral=True)
+        await interaction.response.send_message(f"{e}", ephemeral=True)
 
-@bot.slash_command(
+@tree.command(
     name="decrypt",
-    description="Mesajin sifresini cozer.",
+    description="Mesajin sifresini cozer."
 )
-async def decrypt(ctx, message_id: str):
+async def decrypt(interaction: discord.Interaction, message_id: str):
     allowed_user_ids = [
         1154585783529910292,  # kosero
         1006190399867605072,  # arexa
@@ -144,91 +91,139 @@ async def decrypt(ctx, message_id: str):
         1001813025302519809   # yigosa
     ]
 
-    if ctx.user.id in allowed_user_ids:
+    if interaction.user.id in allowed_user_ids:
         try:
-            message = await ctx.channel.fetch_message(int(message_id))
+            message = await interaction.channel.fetch_message(int(message_id))
             decrypted_message = nerv.decrypt(message.content, ZN_KEY)
-            await ctx.respond(decrypted_message, ephemeral=True)
+            await interaction.response.send_message(decrypted_message, ephemeral=True)
         except Exception as e:
-            await ctx.respond(f"{str(e)}", ephemeral=True)
+            await interaction.response.send_message(f"{str(e)}", ephemeral=True)
     else:
-        await ctx.respond("sex oldu", ephemeral=True)
-
-@bot.slash_command(
-    name="avatar",
-    description="avatar",
+        await interaction.response.send_message("sex oldu", ephemeral=True)
+#
+## Kayit
+#
+@tree.command(
+    name="kayit",
+    description="Bir üyenin kaydını yapar.",
+    guild=discord.Object(id=GUILD)
 )
-async def avatar(ctx, member: discord.Member = None):
-    user = member if member else ctx.author
+async def kayit(interaction: discord.Interaction, member: discord.Member, age: int, why: str, invite: str):
+    kayit_rol = discord.utils.get(interaction.guild.roles, id=1165680635055181885)
+    remove_rol = discord.utils.get(interaction.guild.roles, id=1235920675642933248)
+
+    if kayit_rol and remove_rol:
+        await member.add_roles(kayit_rol)
+        await member.remove_roles(remove_rol)
+
+    log_channel = client.get_channel(KAYIT_LOG)
+
+    embed = discord.Embed(
+        title="Üye Kaydı Yapıldı",
+        description=f"**Üye:** {member.mention}\n**Yaş:** {age}\n**Katılma Sebebi:** {why}\n**Davet:** {invite}",
+        color=discord.Color.yellow()
+    )
+
+    await log_channel.send(embed=embed)
+    await interaction.response.send_message("Kayit ettim sex", ephemeral=True)
+#
+## Ban/Mute/Kick/Unban/Unmute/Avatar
+#
+@tree.command(
+    name="ban",
+    description="Birisini banlar iste",
+    guild=discord.Object(id=GUILD)
+)
+async def ban(interaction: discord.Interaction, member: discord.Member, reason: str = None):
+    c2V4 = 1155877544256614441
+
+    if any(role.id == c2V4 for role in interaction.user.roles):
+        await member.ban(reason=reason)
+        await interaction.response.send_message("Banladim sex", ephemeral=True)
+    else:
+        await interaction.response.send_message("sex oldu", ephemeral=True)
+
+@tree.command(
+    name="avatar",
+    description="Avatarı gösterir."
+)
+async def avatar(interaction: discord.Interaction, member: discord.Member = None):
+    user = member if member else interaction.user
     avatar_url = user.avatar.url if user.avatar else None
 
     if avatar_url:
-        await ctx.respond(f"{avatar_url}")
-
-@bot.slash_command(
+        await interaction.response.send_message(f"{avatar_url}")
+    else:
+        await interaction.response.send_message("sex oldu", ephemeral=True)
+#
+## REI/NECO/...
+#
+@tree.command(
     name="rei",
-    description="REI REI REI REI.",
+    description="REI REI REI REI."
 )
-async def rei(ctx): 
+async def rei(interaction: discord.Interaction):
     rei_rnd = nerv.reicik()
-    await ctx.respond(rei_rnd)
+    await interaction.response.send_message(rei_rnd)
 
-@bot.slash_command(
+@tree.command(
     name="neco",
-    description="NECO NECO NECO NECO.",
+    description="NECO NECO NECO NECO."
 )
-async def neco(ctx): 
+async def neco(interaction: discord.Interaction):
     neco_rnd = nerv.necocuk()
-    await ctx.respond(neco_rnd)
+    await interaction.response.send_message(neco_rnd)
 
-@bot.slash_command(
-    name="archwiki",
-    description="ArchWiki'de arama yapar",
+@tree.command(
+    name="url",
+    description="url ekle",
 )
-async def archwiki(ctx, query: str):
+async def url(interaction: discord.Interaction, list_name: str, url: str):
+    if list_name not in ["neco", "rei"]:
+        await interaction.response.send_message("somurtmak", ephemeral=True)
+        return
+    
+    filename = f'{list_name}.json'
+    nerv.update_json(f"src/{filename}", url)
+    
+    await interaction.response.send_message(f"**{list_name.capitalize()}** ekledim sex")
+
+#
+## ArchWiki/send
+#
+@tree.command(
+    name="archwiki",
+    description="ArchWiki'de arama yapar"
+)
+async def archwiki(interaction: discord.Interaction, query: str):
     page_title, page_url = await nerv.search_archwiki(query)
 
     if page_url:
-        await ctx.respond(f"{page_url}")
+        await interaction.response.send_message(f"{page_url}")
+    else:
+        await interaction.response.send_message("sex oldu", ephemeral=True)
 
-@bot.slash_command(
+@tree.command(
     name="send",
-    description="send.",
+    description="Mesaj gönderir."
 )
-async def send(ctx, message: str, avatar: str, name: str):
+async def send(interaction: discord.Interaction, message: str, avatar: str, name: str):
     allowed_user_ids = [
         1154585783529910292, # kosero
         1006190399867605072, # arexa
         1271174239696977943, # folia
-        723826209691271178, # dark
+        723826209691271178,  # dark
         1123680439224238102, # FRST
-        335882105181569024, # florina
-        859752224879542282, # caklit
-        1001813025302519809 # yigosa
+        335882105181569024,  # florina
+        859752224879542282,  # caklit
+        1001813025302519809  # yigosa
     ]
 
-    if ctx.user.id in allowed_user_ids:
-        await nerv.send_webhook_message("custom", ctx.channel, message, custom_avatar=avatar, custom_name=name)
-        await ctx.respond("sex", ephemeral=True)
+    if interaction.user.id in allowed_user_ids:
+        await nerv.send_webhook_message("custom", interaction.channel, message, custom_avatar=avatar, custom_name=name)
+        await interaction.response.send_message("sex", ephemeral=True)
     else:
-        await ctx.respond("sex oldu", ephemeral=True)
+        await interaction.response.send_message("sex oldu", ephemeral=True)
 
-@bot.slash_command(
-    name="mcserverac",
-    description="Minecraft Sunucusunu acar.",
-)
-async def mcserverac(ctx):
-    await ctx.defer()
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((MC_SERVER_HOST, MC_SERVER_PORT))
-            
-            s.sendall(b'start\n')
-            response = s.recv(1024).decode('utf-8')
+client.run(DC_TOKEN)
 
-            await ctx.followup.send(f"Sunucu: {response}")
-    except Exception as e:
-        await ctx.followup.send(f"{e}")
-
-
-bot.run(DC_TOKEN)

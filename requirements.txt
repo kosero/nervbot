@@ -1,5 +1,5 @@
+discord.py
 aiohttp
-py-cord
 google-generativeai
 python-dotenv
-
+feedparser
