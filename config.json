@@ -5,7 +5,7 @@
     "GUILD": 1154598232651997214,
     "KAYIT_LOG": 1246728895957569616,
     "ZINCIRLI": 1268673900271767672,
-    "RSS_FEED_URL": "https://www.osnews.com/feed/",
-    "CHANNEL_ID": 1198258098297643008,
+    "RSS_FEED_URLS": ["https://www.osnews.com/feed/", "https://www.phoronix.com/rss.php", "https://feeds.arstechnica.com/arstechnica/index", "https://itsfoss.com/rss/", "https://rss.slashdot.org/Slashdot/slashdotMain", "https://www.bleepingcomputer.com/feed/"],
+    "RSS_CHANNEL": 1198258098297643008,
     "SHARED_ENTRIES_FILE": "./src/osnews.json"
 }

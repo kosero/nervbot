@@ -33,10 +33,10 @@ KOPEKC = config["KOPEKC"]
 GUILD = config["GUILD"]
 KAYIT_LOG = config["KAYIT_LOG"]
 ZINCIRLI = config["ZINCIRLI"]
-RSS_FEED_URL = config["RSS_FEED_URL"]
-CHANNEL_ID = config["CHANNEL_ID"]
+RSS_FEED_URLS = config["RSS_FEED_URLS"]
+RSS_CHANNEL = config["RSS_CHANNEL"]
 
-shared_entries = nerv.load_shared_entries()
+shared_entries = set()
 
 @client.event
 async def on_member_join(member):
@@ -240,26 +240,29 @@ async def send(interaction: discord.Interaction, message: str, avatar: str, name
     else:
         await interaction.response.send_message("sex oldu", ephemeral=True)
 
+
+
 @tasks.loop(hours=12)
 async def check_rss_feed():
-    feed = feedparser.parse(RSS_FEED_URL)
-    channel = client.get_channel(CHANNEL_ID)
+    channel = client.get_channel(RSS_CHANNEL)
 
-    for entry in feed.entries:
-        entry_id = entry.id
-        if entry_id in shared_entries:
-            continue
+    for rss_feed_url in RSS_FEED_URLS:
+        feed = feedparser.parse(rss_feed_url)
 
-        title = entry.title
-        link = entry.link
-        summary = entry.summary
+        for entry in feed.entries:
+            entry_id = entry.id
+            if entry_id in shared_entries:
+                continue
 
-        embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
+            title = entry.title
+            link = entry.link
+            summary = entry.summary
 
-        await channel.send(embed=embed)
+            embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
 
-        shared_entries.add(entry_id)
-        nerv.save_shared_entries(shared_entries)
+            await channel.send(embed=embed)
+
+            shared_entries.add(entry_id)
+            nerv.save_shared_entries(shared_entries)
 
 client.run(DC_TOKEN)
-
