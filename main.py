@@ -36,7 +36,7 @@ ZINCIRLI = config["ZINCIRLI"]
 RSS_FEED_URLS = config["RSS_FEED_URLS"]
 RSS_CHANNEL = config["RSS_CHANNEL"]
 
-shared_entries = set()
+shared_entries = nerv.save_shared_entries()
 
 @client.event
 async def on_member_join(member):
