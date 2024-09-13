@@ -150,3 +150,6 @@ async def search_archwiki(query: str):
 
     return page_title, page_url
 
+def change_words(text, old_word, new_word):
+    updated_text = text.replace(old_word, new_word)
+    return updated_text

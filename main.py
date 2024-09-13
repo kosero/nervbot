@@ -4,6 +4,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
+import random
 import json
 import feedparser
 
@@ -29,12 +30,12 @@ with open('config.json', 'r') as file:
 
 NECO_CVP = config["NECO_CVP"]
 KNECOPARA = config["KNECOPARA"]
-KOPEKC = config["KOPEKC"]
 GUILD = config["GUILD"]
 KAYIT_LOG = config["KAYIT_LOG"]
 ZINCIRLI = config["ZINCIRLI"]
 RSS_FEED_URLS = config["RSS_FEED_URLS"]
 RSS_CHANNEL = config["RSS_CHANNEL"]
+MESSAGE_LOG_CHANNEL = 1178631706853507183
 
 shared_entries = set()
 
@@ -44,13 +45,41 @@ async def on_member_join(member):
     await member.add_roles(role)
 
     bekleme = client.get_channel(1246509796329390192)
-    await nerv.send_webhook_message("neco", bekleme, f"Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin? (Hangi etiketler dikkatini cekti ornek: anime, sohbet)\n> Sunucuyu nerden buldun? (Disboard fln)\nBunlara cevap verdikten sonra yetkili birisi seni kayit edicektir")
+    await nerv.send_webhook_message("neco", bekleme, f"Hos geldin {member.mention}, sunucuya katilman icin bir kac soruya cevap vermelisin.\n> Yasin kac?\n> Sunucuya neden katildin?")
 
 @client.event
 async def on_ready():
     await tree.sync()
     print(f"name: {client.user}")
-    check_rss_feed.start() 
+    #check_rss_feed.start() 
+
+@client.event
+async def on_message_delete(message):
+    if message.author == client.user:
+        return
+    if message.webhook_id:
+        return
+
+    avatar_url = message.author.avatar.url if message.author.avatar else "https://i.imgur.com/CSU09SU.png"
+    content = message.content
+
+    attachments = message.attachments
+    if attachments:
+        for attachment in attachments:
+            content += f"\n\n[Attachment]({attachment.url})"
+   
+    if "@everyone" in content:
+        nerv.change_words(content, "@everyone", "#everyone")
+
+    channel = client.get_channel(MESSAGE_LOG_CHANNEL)
+    await nerv.send_webhook_message(
+        "custom", 
+        channel,
+        content,
+        custom_avatar=avatar_url,
+        custom_name=f"{message.author.name} [{message.author.id}] [{message.id}]"
+    )
+
 
 @client.event
 async def on_message(message):
@@ -68,15 +97,12 @@ async def on_message(message):
         miyavlama = random.choice(NECO_CVP)
         await nerv.send_webhook_message("necopara", message.channel, miyavlama)
 
-    if any(content.startswith(keyword) for keyword in KOPEKC):
-        await nerv.send_webhook_message("kopek", message.channel, "hav hav.")
-
     if message.channel.id == ZINCIRLI:
         encrypted_message = nerv.encrypt(message.content, ZN_KEY)
         avatar_url = message.author.avatar.url if message.author.avatar else "https://i.imgur.com/CSU09SU.png"
         await nerv.send_webhook_message("custom", message.channel, encrypted_message, custom_avatar=avatar_url, custom_name=message.author.name)
         await message.delete()
-    
+
 #
 ##encrypt / decrypt
 #
@@ -100,7 +126,6 @@ async def decrypt(interaction: discord.Interaction, message_id: str):
     allowed_user_ids = [
         1154585783529910292,  # kosero
         1006190399867605072,  # arexa
-        1271174239696977943,  # folia
         723826209691271178,   # dark
         1123680439224238102,  # FRST
         335882105181569024,   # florina
@@ -225,46 +250,47 @@ async def archwiki(interaction: discord.Interaction, query: str):
     description="Mesaj gönderir."
 )
 async def send(interaction: discord.Interaction, message: str, avatar: str, name: str):
-    allowed_user_ids = [
-        1154585783529910292, # kosero
-        1006190399867605072, # arexa
-        1271174239696977943, # folia
-        723826209691271178,  # dark
-        1123680439224238102, # FRST
-        335882105181569024,  # florina
-        859752224879542282,  # caklit
-        1001813025302519809  # yigosa
-    ]
-
-    if interaction.user.id in allowed_user_ids:
-        await nerv.send_webhook_message("custom", interaction.channel, message, custom_avatar=avatar, custom_name=name)
-        await interaction.response.send_message("sex", ephemeral=True)
+    if "@everyone" in message or "@here" in message:
+        message_clr = nerv.change_words(message, "@everyone", "#everyone")
+        message_clr = nerv.change_words(message_clr, "@here", "#here")
+        await nerv.send_webhook_message(
+            "custom", 
+            interaction.channel,
+            message_clr,
+            custom_avatar=avatar,
+            custom_name=name
+        )
     else:
-        await interaction.response.send_message("sex oldu", ephemeral=True)
+        await nerv.send_webhook_message(
+            "custom", 
+            interaction.channel,
+            message,
+            custom_avatar=avatar,
+            custom_name=name
+        )
+    await interaction.response.send_message("sex", ephemeral=True)
 
-
-
-@tasks.loop(hours=12)
-async def check_rss_feed():
-    channel = client.get_channel(RSS_CHANNEL)
-
-    for rss_feed_url in RSS_FEED_URLS:
-        feed = feedparser.parse(rss_feed_url)
-
-        for entry in feed.entries:
-            entry_id = entry.id
-            if entry_id in shared_entries:
-                continue
-
-            title = entry.title
-            link = entry.link
-            summary = entry.summary
-
-            embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
-
-            await channel.send(embed=embed)
-
-            shared_entries.add(entry_id)
-            nerv.save_shared_entries(shared_entries)
+#@tasks.loop(hours=12)
+#async def check_rss_feed():
+#    channel = client.get_channel(RSS_CHANNEL)
+#
+#    for rss_feed_url in RSS_FEED_URLS:
+#        feed = feedparser.parse(rss_feed_url)
+#
+#        for entry in feed.entries:
+#            entry_id = entry.id
+#            if entry_id in shared_entries:
+#                continue
+#
+#            title = entry.title
+#            link = entry.link
+#            summary = entry.summary
+#
+#            embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
+#
+#            await channel.send(embed=embed)
+#
+#            shared_entries.add(entry_id)
+#            nerv.save_shared_entries(shared_entries)
 
 client.run(DC_TOKEN)
