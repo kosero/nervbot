@@ -2,4 +2,3 @@ discord.py
 aiohttp
 google-generativeai
 python-dotenv
-feedparser

@@ -1,10 +1,27 @@
 {
-    "NECO_CVP": ["miyav.", "meow."],
-    "KNECOPARA": ["miyav", "mıyav", "meow", "miyaw", "mıyaw", "ps"],
+    "THREAD_REGISTRY": 1290041809312940063,
+    "CHANNEL_MESSAGE": 1178631706853507183,
+    "CHANNEL_ZINCIRLI": 1268673900271767672,
+    "CHANNEL_BEKLE": 1246509796329390192,
+
+    "MIYAV_DIALOGUE": ["miyav.", "meow."],
+    "MIYAV_REPLY": ["miyav", "mıyav", "meow", "miyaw", "mıyaw", "ps"],
+
     "GUILD": 1154598232651997214,
-    "KAYIT_LOG": 1246728895957569616,
-    "ZINCIRLI": 1268673900271767672,
-    "RSS_FEED_URLS": ["https://www.osnews.com/feed/", "https://www.phoronix.com/rss.php", "https://feeds.arstechnica.com/arstechnica/index", "https://itsfoss.com/rss/", "https://rss.slashdot.org/Slashdot/slashdotMain", "https://www.bleepingcomputer.com/feed/"],
-    "RSS_CHANNEL": 1198258098297643008,
-    "SHARED_ENTRIES_FILE": "./src/osnews.json"
+    "ROL_BEKLE": 1235920675642933248,
+    "ROL_LUMiRIAN": 1165680635055181885,
+
+    "c2v4": [
+        1154585783529910292,
+        1006190399867605072,
+        723826209691271178,
+        1123680439224238102,
+        335882105181569024,
+        859752224879542282,
+        1001813025302519809
+    ],
+
+    "NECO_PPS": ["https://i.imgur.com/0S2ygVX.png", "https://i.imgur.com/ljGAfMg.jpeg", "https://i.imgur.com/MDlYUhn.png", "https://i.imgur.com/hChEtBh.png", "https://i.imgur.com/m6K8L1x.png", "https://i.imgur.com/2Pql211.png", "https://i.imgur.com/auiZpUy.png", "https://i.imgur.com/1cifm70.png", "https://i.pinimg.com/736x/fa/a7/47/faa747a3ddcd789edd288888ef259ccf.jpg", "https://i.pinimg.com/736x/a0/68/6d/a0686da7f616774cf1fa3575b720a3b1.jpg", "https://i.pinimg.com/736x/a6/db/24/a6db247e9ca34d1768a72b0957f8d634.jpg", "https://i.pinimg.com/736x/56/a2/90/56a2909fdaff7ce15b1627129483da14.jpg", "https://i.pinimg.com/736x/36/73/c7/3673c722f56b6233471ad22705f9f583.jpg", "https://i.pinimg.com/736x/2e/fb/d5/2efbd5e3258c6d4d227c5c6db32f3e5f.jpg", "https://i.pinimg.com/736x/e9/a2/73/e9a2731b29809ee7ad433a51de721ef5.jpg"],
+    "REI_JSON": "src/rei.json",
+    "NECO_JSON": "src/neco.json"
 }
