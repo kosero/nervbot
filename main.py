@@ -153,7 +153,7 @@ async def decrypt(interaction: discord.Interaction, message_id: str):
     description="Bir üyenin kaydını yapar.",
     guild=discord.Object(id=GUILD)
 )
-async def kayit(interaction: discord.Interaction, member: discord.Member, age: int = None, why: str = None):
+async def kayit(interaction: discord.Interaction, member: discord.Member, age: int = 0, why: str = "None"):
     kayit_rol = discord.utils.get(interaction.guild.roles, id=ROL_LUMiRIAN)
     remove_rol = discord.utils.get(interaction.guild.roles, id=ROL_BEKLE)
 
