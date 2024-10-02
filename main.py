@@ -161,7 +161,7 @@ async def kayit(interaction: discord.Interaction, member: discord.Member, age: i
         await member.add_roles(kayit_rol)
         await member.remove_roles(remove_rol)
 
-    log_channel = client.get_channel(KAYIT_LOG)
+    log_channel = client.get_channel(CHANNEL_MESSAGE)
 
     embed = discord.Embed(
         title="Üye Kaydı Yapıldı",
